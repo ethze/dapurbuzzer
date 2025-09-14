@@ -1,0 +1,57 @@
+.sectionHeader {
+  display: flex;
+  height: 37px;
+
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin: 10px 0;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 37px;
+}
+
+.iconBox {
+  width: 37px;
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    color: #fff;
+    font-size: 18px;
+  }
+}
+
+.title {
+  font-size: 14px;
+  padding: 12px 0;
+  font-weight: 500;
+  color: #000;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #811ac9;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  svg {
+    font-size: 16px;
+  }
+}
