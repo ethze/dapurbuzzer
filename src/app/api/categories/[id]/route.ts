@@ -2,8 +2,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
 
 // GET category by id
-export async function GET(_: Request, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params; 
   const { data, error } = await supabase
     .from("categories")
     .select("*")
@@ -15,8 +15,8 @@ export async function GET(_: Request, context: { params: { id: string } }) {
 }
 
 // UPDATE category
-export async function PUT(req: Request, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   const body = await req.json();
 
   const { data, error } = await supabase
@@ -31,8 +31,8 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
 }
 
 // DELETE category
-export async function DELETE(_: Request, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
 
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
