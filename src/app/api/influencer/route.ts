@@ -10,14 +10,44 @@ export async function GET() {
 
 // POST new influencer
 export async function POST(req: Request) {
-  const body = await req.json();
+  const formData = await req.formData();
+
+  const name = formData.get("name") as string;
+  const ig_username = formData.get("ig_username") as string;
+  const ig_followers = Number(formData.get("ig_followers") ?? 0);
+  const file = formData.get("file") as File | null;
+
+  let imageUrl: string | null = null;
+
+  if (file) {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const fileName = `${Date.now()}-${file.name}`;
+
+    const { data: upload, error: uploadError } = await supabase.storage
+      .from("influencer") // ganti sesuai bucket lu
+      .upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    }
+
+    const { data: publicUrl } = supabase.storage
+      .from("influencer")
+      .getPublicUrl(upload.path);
+
+    imageUrl = publicUrl.publicUrl;
+  }
 
   const { data, error } = await supabase
     .from("influencers")
-    .insert([body])
-    .select();
+    .insert([{ name, ig_username, ig_followers, image: imageUrl }])
+    .select()
+    .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data[0]);
+  return NextResponse.json(data);
 }
 

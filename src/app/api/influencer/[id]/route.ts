@@ -1,41 +1,48 @@
 import { supabase } from "@/lib/supabaseClient";
 import { NextResponse } from "next/server";
 
-// GET influencer by id
-export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
-  const { id } = await context.params;
-  const { data, error } = await supabase
-    .from("influencers")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 404 });
-  return NextResponse.json(data);
-}
-
 // UPDATE influencer
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
-  const { id } = await context.params;
-  const body = await req.json();
+    const { id } = await context.params;
+    const formData = await req.formData();
 
-  const { data, error } = await supabase
-    .from("influencers")
-    .update(body)
-    .eq("id", id)
-    .select()
-    .single();
+    const name = formData.get("name") as string;
+    const ig_username = formData.get("ig_username") as string;
+    const ig_followers = Number(formData.get("ig_followers") ?? 0);
+    const file = formData.get("file") as File | null;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
-}
+    let updateData: any = { name, ig_username, ig_followers };
 
-// DELETE influencer
-export async function DELETE(_: Request, context: { params: Promise<{ id: string }> }) {
-  const { id } = await context.params;
+    if (file) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const fileName = `${Date.now()}-${file.name}`;
 
-  const { error } = await supabase.from("influencers").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ message: "Deleted successfully" });
+        const { data: upload, error: uploadError } = await supabase.storage
+            .from("influencer") // ganti sesuai bucket lu
+            .upload(fileName, buffer, {
+                contentType: file.type,
+                upsert: true,
+            });
+
+        if (uploadError) {
+            return NextResponse.json({ error: uploadError.message }, { status: 500 });
+        }
+
+        const { data: publicUrl } = supabase.storage
+            .from("influencer")
+            .getPublicUrl(upload.path);
+
+        updateData.image = publicUrl.publicUrl;
+    }
+
+    const { data, error } = await supabase
+        .from("influencers")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data);
 }
 
