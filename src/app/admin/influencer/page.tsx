@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { InfluencerProvider, useInfluencerContext, Influencer } from "@/context/InfluencerContext";
+import Image from "next/image";
+import {
+  InfluencerProvider,
+  useInfluencerContext,
+  Influencer,
+} from "@/context/InfluencerContext";
 import styles from "./InfluencerAdmin.module.scss";
 import ImageCropper from "@/components/ImageCropper";
 
@@ -51,9 +56,10 @@ function AdminInfluencerPageInner() {
     formData.append("ig_followers", followers ? String(Number(followers)) : "0"); // convert
     if (file) formData.append("file", file);
 
-    const url = editing && editing.id
-      ? `/api/influencer/${editing.id}`
-      : "/api/influencer";
+    const url =
+      editing && editing.id
+        ? `/api/influencer/${editing.id}`
+        : "/api/influencer";
     const method = editing && editing.id ? "PUT" : "POST";
 
     const res = await fetch(url, { method, body: formData });
@@ -116,7 +122,13 @@ function AdminInfluencerPageInner() {
             <tr key={inf.id}>
               <td>
                 {inf.image ? (
-                  <img src={inf.image} alt={inf.name} className={styles.avatar} />
+                  <Image
+                    src={inf.image}
+                    alt={inf.name}
+                    width={48}
+                    height={48}
+                    className={styles.avatar}
+                  />
                 ) : (
                   "-"
                 )}
@@ -173,7 +185,12 @@ function AdminInfluencerPageInner() {
 
             {preview && (
               <div className={styles.preview}>
-                <img src={preview} alt="Preview" />
+                <Image
+                  src={preview}
+                  alt="Preview"
+                  width={200}
+                  height={200}
+                />
               </div>
             )}
 
