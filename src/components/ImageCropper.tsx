@@ -1,6 +1,6 @@
 "use client";
 
-import Cropper from "react-easy-crop";
+import Cropper, { Area } from "react-easy-crop";
 import { useState, useCallback } from "react";
 
 type Props = {
@@ -10,15 +10,17 @@ type Props = {
 };
 
 export default function ImageCropper({ file, onCancel, onCropDone }: Props) {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [crop, setCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  const onCropComplete = useCallback((_: any, croppedAreaPixels: any) => {
+  const onCropComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const getCroppedImg = async () => {
+    if (!croppedAreaPixels) return;
+
     const image = await createImage(URL.createObjectURL(file));
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -80,8 +82,8 @@ export default function ImageCropper({ file, onCancel, onCropDone }: Props) {
         <button
           onClick={onCancel}
           style={{
-            backgroundColor: "#e5e7eb", 
-            color: "#374151", 
+            backgroundColor: "#e5e7eb",
+            color: "#374151",
             padding: "0.5rem 1rem",
             borderRadius: "0.5rem",
             fontWeight: "600",
@@ -90,11 +92,10 @@ export default function ImageCropper({ file, onCancel, onCropDone }: Props) {
           Cancel
         </button>
 
-        {/* Crop button - purple */}
         <button
           onClick={getCroppedImg}
           style={{
-            backgroundColor: "#7c3aed", 
+            backgroundColor: "#7c3aed",
             color: "white",
             padding: "0.5rem 1rem",
             borderRadius: "0.5rem",

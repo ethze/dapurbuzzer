@@ -15,22 +15,23 @@ function AdminInfluencerPageInner() {
   const [editing, setEditing] = useState<Influencer | null>(null);
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
-  const [followers, setFollowers] = useState<number>(0);
+  const [followers, setFollowers] = useState<string>(""); // pakai string
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (editing) {
       setName(editing.name ?? "");
       setUsername(editing.ig_username ?? "");
-      setFollowers(editing.ig_followers ?? 0);
+      setFollowers(editing.ig_followers ? String(editing.ig_followers) : "");
       setPreview(editing.image ?? null);
       setFile(null);
     } else {
       setName("");
       setUsername("");
-      setFollowers(0);
+      setFollowers("");
       setPreview(null);
       setFile(null);
     }
@@ -47,7 +48,7 @@ function AdminInfluencerPageInner() {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("ig_username", username);
-    formData.append("ig_followers", String(followers));
+    formData.append("ig_followers", followers ? String(Number(followers)) : "0"); // convert
     if (file) formData.append("file", file);
 
     const url = editing && editing.id
@@ -57,10 +58,18 @@ function AdminInfluencerPageInner() {
 
     const res = await fetch(url, { method, body: formData });
     if (res.ok) {
-      refresh();
+      await refresh();
       setEditing(null);
     }
     setSaving(false);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Yakin mau hapus influencer ini?")) return;
+    setDeletingId(id);
+    await fetch(`/api/influencer/${id}`, { method: "DELETE" });
+    await refresh();
+    setDeletingId(null);
   };
 
   return (
@@ -119,12 +128,10 @@ function AdminInfluencerPageInner() {
                 <button onClick={() => setEditing(inf)}>Edit</button>
                 <button
                   className={styles.delete}
-                  onClick={async () => {
-                    await fetch(`/api/influencer/${inf.id}`, { method: "DELETE" });
-                    refresh();
-                  }}
+                  onClick={() => handleDelete(inf.id)}
+                  disabled={deletingId === inf.id}
                 >
-                  Hapus
+                  {deletingId === inf.id ? "Menghapus..." : "Hapus"}
                 </button>
               </td>
             </tr>
@@ -161,7 +168,7 @@ function AdminInfluencerPageInner() {
               type="number"
               placeholder="Followers"
               value={followers}
-              onChange={(e) => setFollowers(Number(e.target.value))}
+              onChange={(e) => setFollowers(e.target.value)}
             />
 
             {preview && (
@@ -184,9 +191,13 @@ function AdminInfluencerPageInner() {
 
             <div className={styles.actions}>
               <button type="submit" disabled={saving}>
-                {saving ? "Saving..." : "Save"}
+                {saving ? "Menyimpan..." : "Save"}
               </button>
-              <button type="button" onClick={() => setEditing(null)} className={styles.cancel}>
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                className={styles.cancel}
+              >
                 Cancel
               </button>
             </div>
